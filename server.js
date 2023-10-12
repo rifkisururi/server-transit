@@ -68,15 +68,16 @@ app.post("/", async (req, res) => {
 
 app.get("/transaksiGet", async (req, res) => {
   try{
-    console.log(req.body);
-    const destUrl = req.body.destUrl;
-    let data = await axios.get(destUrl);
-    const text =  data;
+    // console.log(req.body);
+    // const destUrl = req.body.destUrl;
+    // let data = await axios.get(destUrl);
+    // var text =  data;
+    var text = "R#11 ST1.081312111781 GAGAL. Saldo tidak cukup. Hrg 1.910, Saldo 1.480, masih proses 0. @15:08 * SFP MURAH"
     const regex1 = /R#(\d+)\s+([^@]+)\s+akan diproses @(\d+:\d+).+?Saldo ([^\s]+) - ([^\s]+) = ([^\s]+) ([^\d]+)/;
     const regex2 = /#R([^@]+)\s+([^@]+)\s+@([^@]+), status ([^@]+).+?Sal ([^\s]+)/;
     const regex3 = /R#([^@]+)\s+([^@]+)\s+SUKSES. SNRef: ([^@]+).+?Saldo ([^@]+) - ([^@]+)=([^@]+)\s/;
     const regex4 = /R#([^@]+)\s+([^@]+)\s+?GAGAL. . Saldo ([^@]+)+@(\d+:\d+)/;
-  
+    console.log(text)
     var  match = null
     var loop = 0;
     while(match == null){
@@ -149,7 +150,7 @@ app.get("/transaksiGet", async (req, res) => {
       } else {
         res.json({ error: text });
       }
-      res.json({ error: "terjadi kesalahan" });
+      res.json(jsonResult);
     }
   }catch(e){
     res.json({ error: "terjadi kesalahan" });
