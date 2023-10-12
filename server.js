@@ -66,12 +66,14 @@ app.post("/", async (req, res) => {
 });
 
 
-app.get("/transaksiGet", async (req, res) => {
+app.post("/transaksi", async (req, res) => {
+  console.log('transaksiGet');
   try{
     console.log(req.body);
     const destUrl = req.body.destUrl;
     let data = await axios.get(destUrl);
-    const text =  data;
+    console.log(data.data);
+    const text =  data.data;
     const regex1 = /R#(\d+)\s+([^@]+)\s+akan diproses @(\d+:\d+).+?Saldo ([^\s]+) - ([^\s]+) = ([^\s]+) ([^\d]+)/;
     const regex2 = /#R([^@]+)\s+([^@]+)\s+@([^@]+), status ([^@]+).+?Sal ([^\s]+)/;
     const regex3 = /R#([^@]+)\s+([^@]+)\s+SUKSES. SNRef: ([^@]+).+?Saldo ([^@]+) - ([^@]+)=([^@]+)\s/;
@@ -145,13 +147,19 @@ app.get("/transaksiGet", async (req, res) => {
         jsonResult = {
           error: "Saldo tidak cukup"
         };
+      }else if(text.includes("Invalid Signature")){
+        jsonResult = {
+          error: "Invalid Signature"
+        };
       } else {
-        res.json({ error: text });
+        jsonResult = {
+          error: text
+        };
       }
       res.json(jsonResult);
     }
   }catch(e){
-    res.json({ error: "terjadi kesalahan" });
+    res.json({ error: "terjadi kesalahan 0" });
   }
   
 })
