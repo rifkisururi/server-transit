@@ -2,6 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import axios from "axios";
+import cheerio from 'cheerio';
+import qs from 'qs';
 dotenv.config();
 
 const app = express();
@@ -159,6 +161,89 @@ app.post("/transaksi", async (req, res) => {
       res.json(jsonResult);
     }
   }catch(e){
+    res.json({ error: "terjadi kesalahan 0" });
+  }
+})
+
+app.post("/saldo", async (req, res) => {
+  console.log(req.body)
+  try{
+    let config = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: req.body.destUrl,
+      headers: { 
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Cookie': req.body.cookie
+      }
+    };
+    var respondLogin = "";
+  
+    await axios.request(config)
+    .then((response) => {
+      respondLogin = response.data;
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+    const $ = cheerio.load(respondLogin);
+    const saldoElement = $('div[style*="text-transform:uppercase"]');
+    const saldoText = saldoElement.text();
+    const saldoMatch = saldoText.match(/Saldo:\s*([\d,.]+)/);
+    if (saldoMatch) {
+      res.json({ status:true, saldo: saldoMatch[1].replaceAll('','') });
+    } else {
+      res.json({ status:false, error: "terjadi kesalahan 1" });
+    }
+  }catch(e){
+    res.json({ error: "terjadi kesalahan 0" });
+  }
+})
+
+app.post("/produk", async (req, res) => {
+  console.log(req.body)
+  try {
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: req.body.destUrl,
+      headers: { 
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Cookie': req.body.cookie
+      }
+    };
+    
+    var respondLogin = "";
+  
+    await axios.request(config)
+    .then((response) => {
+      respondLogin = response.data;
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+    const $ = cheerio.load(respondLogin);
+    const data = [];
+    $('tr').each((index, row) => {
+      if (index !== 0) { // Melewatkan baris judul
+        const columns = $(row).find('td');
+        const rowData = {
+          No: columns.eq(0).text().trim(),
+          Provider: columns.eq(1).text().trim(),
+          Kode_Produk: columns.eq(2).text().trim(),
+          Keterangan: columns.eq(3).text().trim(),
+          Harga: columns.eq(4).text().trim(),
+          Status: columns.eq(5).text().trim(),
+        };
+        data.push(rowData);
+      }
+    });
+    if(data.length == 0){
+      res.json({ error: "terjadi kesalahan 1" });
+    }else{
+      res.json({ status:true, data:data});
+    }
+  } catch (error) {
     res.json({ error: "terjadi kesalahan 0" });
   }
   
